@@ -13,6 +13,24 @@ db_config = {
     'database': 'clothes_store'
 }
 
+@app.route('/profile/<username>')
+def profile(username):
+    try:
+        conn = pymysql.connect(**db_config)
+        cur = conn.cursor()
+
+        user_query = "SELECT id, username, email FROM users WHERE username = %s"
+        cur.execute(user_query, (username,))
+        user = cur.fetchone()
+        if not user:
+            flash('User not found', 'danger')
+            return redirect('/')
+        # If the user doesnt exist it uses this code
+
+    except Exception as e:
+        flash(f"Error loading profile: {e}", 'danger')
+        return redirect('/')
+
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -53,6 +71,20 @@ def register():
 @app.route('/women')
 def women():
     return render_template('women.html')
+
+@app.route('/men')
+def men():
+    return render_template('men.html')
+
+@app.route('/kids')
+def kids():
+    return render_template('kids.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('Successfully logged out!', 'info')
+    return redirect(url_for('home'))
 
 if __name__== '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
