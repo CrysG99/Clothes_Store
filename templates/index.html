@@ -36,6 +36,7 @@
                     </ul>
                 </li>
                 <a href="{{ url_for('kids') }}">Kids</a>
+                <a href="{{ url_for('register') }}">Register</a>
             </ul>
 
             <div class="nav-right">
@@ -49,9 +50,8 @@
         <div class="mobile-menu">
             <ul>
                 <button class="menubutton" onclick="location.href='{{ url_for('women') }}'">Women</button>
-                <li><a href="#">Men</a></li>
+                <button class="menubutton" onclick="location.href='{{ url_for('men') }}'">Men</button>
                 <li><a href="#">Kids</a></li>
-                <li><a href="#">Sale</a></li>
             </ul>
         </div>
     </div>

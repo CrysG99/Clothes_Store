@@ -40,7 +40,7 @@
 
             <div class="nav-right">
                 <a href="#" class="icon">&#128269;</a> <!-- Search Icon -->
-                <a href="{{ url_for('profile') }}" class="icon">&#128100;</a> <!-- User Icon -->
+                <a href="#" class="icon">&#128100;</a> <!-- User Icon -->
                 <a href="#" class="icon">&#128717;</a> <!-- Cart Icon -->
             </div>
         </nav>
@@ -51,7 +51,6 @@
                 <button class="menubutton" onclick="location.href='{{ url_for('women') }}'">Women</button>
                 <li><a href="#">Men</a></li>
                 <li><a href="#">Kids</a></li>
-                <li><a href="#">Sale</a></li>
             </ul>
         </div>
     </div>
@@ -59,8 +58,8 @@
 
     <div class="container">
         <form method="POST">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
             <br>
             <label for="email">Email:</label>
             <input type="text" id="email" name="email" required>

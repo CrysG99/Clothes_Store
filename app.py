@@ -13,19 +13,21 @@ db_config = {
     'database': 'clothes_store'
 }
 
-@app.route('/profile/<username>')
-def profile(username):
+@app.route('/profile/<name>')
+def profile(name):
     try:
         conn = pymysql.connect(**db_config)
         cur = conn.cursor()
 
-        user_query = "SELECT id, username, email FROM users WHERE username = %s"
-        cur.execute(user_query, (username,))
+        user_query = "SELECT id, name, email FROM customers WHERE name = %s"
+        cur.execute(user_query, (name,))
         user = cur.fetchone()
         if not user:
             flash('User not found', 'danger')
             return redirect('/')
         # If the user doesnt exist it uses this code
+
+        return render_template('profile.html', user=user)
 
     except Exception as e:
         flash(f"Error loading profile: {e}", 'danger')
@@ -38,25 +40,25 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        name = request.form['name']
         email = request.form['email']
         password = request.form['password']
 
     try:
         conn = pymysql.connect(**db_config)
         cur = conn.cursor()
-        cur.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password))
+        cur.execute("SELECT * FROM customers WHERE name = %s AND password = %s", (name, password))
         user = cur.fetchone()
         cur.close()
         conn.close()
 
         if user:
             session['user_id'] = user[0]
-            session['username'] = user[1]
+            session['name'] = user[1]
             flash('Logged in successfully! Velkommen {user[1]}', 'success')
-            return redirect(url_for('profile', username=user[1]))
+            return redirect(url_for('profile', name=user[1]))
         else:
-            flash('Invalid username or password', 'danger')
+            flash('Invalid name or password', 'danger')
             return redirect(url_for('login'))
         
     except Exception as e:
@@ -67,6 +69,28 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     return render_template('register.html')
+
+@app.route('/submit', methods=['GET', 'POST'])
+def submit():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        password = request.form['password']
+
+        try:
+            conn = pymysql.connect(**db_config)
+            cursor = conn.cursor()
+            query = "INSERT INTO customers (name, email, password) VALUES (%s, %s, %s)"
+            cursor.execute(query, (name, email, password))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            return redirect('/')
+        except Exception as e:
+            flash('Email already exists or another error occurred.', 'danger')
+            print(f"Error: {e}")
+            return redirect(url_for('register'))
+
 
 @app.route('/women')
 def women():

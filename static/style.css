@@ -1,13 +1,22 @@
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap');
+
+
 /* General Styles */
 body {
     margin: 0;
     padding: 0;
 }
 
+a {
+    color: #000;
+}
+
 /* Navbar Styles */
 .header {
-    background-color: #000;
-    position: fixed;
+    display: flex;
+    justify-content: space-evenly;
+    background-color: #F1F1F1;
     width: 100%;
     top: 0;
     left: 0;
@@ -16,12 +25,34 @@ body {
 }
 
 .menubutton {
-    background-color: #000;
+    margin-top: 24px;
+    margin-bottom: 24px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease-in-out;
+    background-color: #214a46;
+    border: none;
     color: #fff;
-    border: #000;
+    font-weight: 600;
 }
 
-.menubutton:hover {}
+.profile .menubutton:hover {
+    background-color: #1d403c;
+}
+
+button {
+    background: #2575fc;
+    color: #fff;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: #6a11cb;
+}
 
 form {
     display: flex;
@@ -76,6 +107,7 @@ input:focus {
     font-weight: bold;
     text-align: center;
     flex: 1;
+    color: #000;
 }
 
 /* Nav Links */
@@ -90,21 +122,39 @@ input:focus {
 }
 
 .nav-links a {
-    color: white;
+    color: #000;
     text-decoration: none;
     font-size: 1.2em;
     padding: 10px;
+    font-family: "Roboto Condensed", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 500;
+    font-style: normal;
 }
 
 .nav-links a:hover {
     text-decoration: underline;
 }
 
+
+/* Login/Register stuff */
+
+.container {
+    background: #fff;
+    color: #333;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+}
+
+
 /* Dropdown Menu */
 .dropdown-menu {
     display: none;
     position: absolute;
-    background-color: black;
+    background-color: #fff;
     top: 40px;
     left: 0;
     min-width: 150px;
@@ -117,7 +167,7 @@ input:focus {
 }
 
 .dropdown-menu a {
-    color: white;
+    color: #000;
     text-decoration: none;
     display: block;
 }
