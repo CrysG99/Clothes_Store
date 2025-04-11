@@ -35,13 +35,16 @@
                         <li><a href="#">Pants</a></li>
                     </ul>
                 </li>
-                <a href="{{ url_for('kids') }}">Kids</a>
+                {% if 'user_id' not in session %}
                 <a href="{{ url_for('register') }}">Register</a>
+
+                {% else %}
+                <button onclick="location.href='{{ url_for('profile', name=session['name']) }}'"></button>
+                {% endif %}
             </ul>
 
             <div class="nav-right">
                 <a href="#" class="icon">&#128269;</a> <!-- Search Icon -->
-                <a href="#" class="icon">&#128100;</a> <!-- User Icon -->
                 <a href="#" class="icon">&#128717;</a> <!-- Cart Icon -->
             </div>
         </nav>

@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import pymysql #type: ignore
 from flask import session
-import re
 
 app = Flask(__name__)
 app.secret_key = 'storekey'
@@ -20,7 +19,7 @@ def profile(name):
         cur = conn.cursor()
 
         user_query = "SELECT id, name, email FROM customers WHERE name = %s"
-        cur.execute(user_query, (name,))
+        cur.execute(user_query, (name))
         user = cur.fetchone()
         if not user:
             flash('User not found', 'danger')
@@ -66,6 +65,44 @@ def login():
 
     return render_template('login.html')
 
+
+# admin stuff
+
+@app.route('/admin_login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        admin_name = request.form['admin_name']
+        admin_password = request.form['admin_password']
+
+        try:
+            conn = pymysql.connect(**db_config)
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM admins WHERE admin_name = %s AND admin_password = %s", (admin_name, admin_password))
+            admin = cur.fetchone()
+            cur.close()
+            conn.close()
+
+            if admin:
+                session['admin_id'] = admin[0]
+                session['admin_name'] = admin[1]
+                flash(f'Admin login successful! Welcome {admin[1]}', 'success')
+                print("Hello admin!")
+                return redirect(url_for('/admin_dashboard.html', name=admin[1]))
+            else:
+                flash('Invalid admin name or password', 'danger')
+                return redirect(url_for('admin_login'))
+        except Exception as e:
+            flash(f"Error during admin login: {e}", 'danger')
+
+    return render_template('admin_login.html')
+
+@app.route('/admin_dashboard')
+def admin_dashboard():
+    if 'admin_id' not in session:
+        flash('You must be logged in as an admin to access this page', 'danger')
+        return redirect(url_for('admin_login'))
+    return f"Welcome Admin {session['admin_name']}!"
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     return render_template('register.html')
@@ -99,10 +136,6 @@ def women():
 @app.route('/men')
 def men():
     return render_template('men.html')
-
-@app.route('/kids')
-def kids():
-    return render_template('kids.html')
 
 @app.route('/logout')
 def logout():
