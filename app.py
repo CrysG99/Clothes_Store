@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import pymysql #type: ignore
 from flask import session
+import bcrypt
 
 app = Flask(__name__)
 app.secret_key = 'storekey'
@@ -77,22 +78,26 @@ def admin_login():
         try:
             conn = pymysql.connect(**db_config)
             cur = conn.cursor()
-            cur.execute("SELECT * FROM admins WHERE admin_name = %s AND admin_password = %s", (admin_name, admin_password))
+
+            query = "SELECT * FROM admins WHERE admin_name = %s AND admin_password = %s"
+            cur.execute(query, (admin_name, admin_password))
             admin = cur.fetchone()
             cur.close()
             conn.close()
 
-            if admin:
+            if admin and bcrypt.checkpw(admin_password.encode('utf-8'), admin[2]):
                 session['admin_id'] = admin[0]
                 session['admin_name'] = admin[1]
                 flash(f'Admin login successful! Welcome {admin[1]}', 'success')
                 print("Hello admin!")
-                return redirect(url_for('/admin_dashboard.html', name=admin[1]))
+                return redirect(url_for('admin_dashboard'))
             else:
                 flash('Invalid admin name or password', 'danger')
                 return redirect(url_for('admin_login'))
         except Exception as e:
             flash(f"Error during admin login: {e}", 'danger')
+            print(f"Login error: {e}")
+            return redirect(url_for('admin_login'))
 
     return render_template('admin_login.html')
 
@@ -101,7 +106,8 @@ def admin_dashboard():
     if 'admin_id' not in session:
         flash('You must be logged in as an admin to access this page', 'danger')
         return redirect(url_for('admin_login'))
-    return f"Welcome Admin {session['admin_name']}!"
+    
+    return render_template('admin_dashboard.html', admin_name=session.get('admin_name'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -122,11 +128,35 @@ def submit():
             conn.commit()
             cursor.close()
             conn.close()
-            return redirect('/')
+            return redirect('/login.html')
         except Exception as e:
             flash('Email already exists or another error occurred.', 'danger')
             print(f"Error: {e}")
             return redirect(url_for('register'))
+        
+
+
+@app.route('/admin_submit', methods=['GET', 'POST'])
+def admin_submit():
+    if request.method == 'POST':
+        admin_name = request.form['admin_name']
+        admin_password = request.form['admin_password']
+
+        try:
+            conn = pymysql.connect(**db_config)
+            cursor = conn.cursor()
+            query = "INSERT INTO admins (admin_name, admin_password) VALUES (%s, %s)"
+            cursor.execute(query, (admin_name, admin_password))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            flash('Admin registered successfully!', 'success')
+            return redirect('/admin_login')
+        except Exception as e:
+            flash('An error occurred while registering admin', 'danger')
+            print(f"error: {e}")
+            return redirect(url_for('admin_login'))
+
 
 
 @app.route('/women')
@@ -136,6 +166,38 @@ def women():
 @app.route('/men')
 def men():
     return render_template('men.html')
+
+@app.route('/cart')
+def cart():
+    cart_items = session.get('cart', [])
+    total_price = sum(item['price'] * item['quantity'] for item in cart_items)
+    return render_template('cart.html', cart_items=cart_items, total_price = total_price)
+
+@app.route('/add_to_cart/<int:product:id>', methods=['POST'])
+def add_to_cart(product_id):
+    quantity = int(request.form.get('quantity', 1))
+    conn = pymysql.connect(**db_config)
+    cur = conn.cursor()
+    cur.execute("SELECT id, name, price FROM products WHERE id = %s", (product_id,))
+    product = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if product:
+        item = {
+            'id': product[0],
+            'name': product[1],
+            'price': product[2],
+            'quantity': quantity
+        }
+
+    if 'cart' not in session:
+        session['cart'] = []
+    session['cart'].append(item)
+    session.modified = True
+
+    return redirect(url_for('cart'))
+
 
 @app.route('/logout')
 def logout():
