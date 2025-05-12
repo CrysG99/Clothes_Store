@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import pymysql #type: ignore
 from flask import session
-import bcrypt
 
 app = Flask(__name__)
 app.secret_key = 'storekey'
@@ -85,7 +84,7 @@ def admin_login():
             cur.close()
             conn.close()
 
-            if admin and bcrypt.checkpw(admin_password.encode('utf-8'), admin[2]):
+            if admin(admin_password.encode('utf-8'), admin[2]):
                 session['admin_id'] = admin[0]
                 session['admin_name'] = admin[1]
                 flash(f'Admin login successful! Welcome {admin[1]}', 'success')
@@ -167,36 +166,36 @@ def women():
 def men():
     return render_template('men.html')
 
-@app.route('/cart')
-def cart():
-    cart_items = session.get('cart', [])
-    total_price = sum(item['price'] * item['quantity'] for item in cart_items)
-    return render_template('cart.html', cart_items=cart_items, total_price = total_price)
+# @app.route('/cart')
+# def cart():
+#     cart_items = session.get('cart', [])
+#     total_price = sum(item['price'] * item['quantity'] for item in cart_items)
+#     return render_template('cart.html', cart_items=cart_items, total_price = total_price)
 
-@app.route('/add_to_cart/<int:product:id>', methods=['POST'])
-def add_to_cart(product_id):
-    quantity = int(request.form.get('quantity', 1))
-    conn = pymysql.connect(**db_config)
-    cur = conn.cursor()
-    cur.execute("SELECT id, name, price FROM products WHERE id = %s", (product_id,))
-    product = cur.fetchone()
-    cur.close()
-    conn.close()
+# @app.route('/add_to_cart/<int:product:id>', methods=['POST'])
+# def add_to_cart(product_id):
+#     quantity = int(request.form.get('quantity', 1))
+#     conn = pymysql.connect(**db_config)
+#     cur = conn.cursor()
+#     cur.execute("SELECT id, name, price FROM products WHERE id = %s", (product_id,))
+#     product = cur.fetchone()
+#     cur.close()
+#     conn.close()
 
-    if product:
-        item = {
-            'id': product[0],
-            'name': product[1],
-            'price': product[2],
-            'quantity': quantity
-        }
+#     if product:
+#         item = {
+#             'id': product[0],
+#             'name': product[1],
+#             'price': product[2],
+#             'quantity': quantity
+#         }
 
-    if 'cart' not in session:
-        session['cart'] = []
-    session['cart'].append(item)
-    session.modified = True
+#     if 'cart' not in session:
+#         session['cart'] = []
+#     session['cart'].append(item)
+#     session.modified = True
 
-    return redirect(url_for('cart'))
+#     return redirect(url_for('cart'))
 
 
 @app.route('/logout')
