@@ -14,19 +14,34 @@ db_config = {
 
 @app.route('/profile/<name>')
 def profile(name):
+    print(session)
+    if 'user_id' not in session:
+        flash("You need to be logged in to access your profile", "danger")
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+
+
     try:
         conn = pymysql.connect(**db_config)
-        cur = conn.cursor()
+        cur = conn.cursor(pymysql.cursors.DictCursor)
 
         user_query = "SELECT id, name, email FROM customers WHERE name = %s"
-        cur.execute(user_query, (name))
+        cur.execute(user_query, (name,))
         user = cur.fetchone()
+
         if not user:
             flash('User not found', 'danger')
-            return redirect('/')
+            return redirect(url_for('home'))
         # If the user doesnt exist it uses this code
 
-        return render_template('profile.html', user=user)
+        cur.execute("SELECT * FROM orders WHERE customer_id = %s ORDER BY created_at DESC", (user_id,))
+        orders = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        return render_template('profile.html', user=user, orders=orders)
 
     except Exception as e:
         flash(f"Error loading profile: {e}", 'danger')
@@ -55,7 +70,7 @@ def login():
             session['user_id'] = user[0]
             session['name'] = user[1]
             flash('Logged in successfully! Velkommen {user[1]}', 'success')
-            return redirect(url_for('profile', name=user[1]))
+            return redirect(url_for('profile/<name>'))
         else:
             flash('Invalid name or password', 'danger')
             return redirect(url_for('login'))
@@ -84,7 +99,7 @@ def admin_login():
             cur.close()
             conn.close()
 
-            if admin(admin_password.encode('utf-8'), admin[2]):
+            if admin:
                 session['admin_id'] = admin[0]
                 session['admin_name'] = admin[1]
                 flash(f'Admin login successful! Welcome {admin[1]}', 'success')
@@ -127,7 +142,7 @@ def submit():
             conn.commit()
             cursor.close()
             conn.close()
-            return redirect('/login.html')
+            return redirect(url_for('login'))
         except Exception as e:
             flash('Email already exists or another error occurred.', 'danger')
             print(f"Error: {e}")
@@ -160,43 +175,70 @@ def admin_submit():
 
 @app.route('/women')
 def women():
-    return render_template('women.html')
+    conn = pymysql.connect(**db_config)
+    cur = conn.cursor(pymysql.cursors.DictCursor)
+    cur.execute("SELECT * FROM products WHERE gender = 'women'")
+    products = cur.fetchall()
+    cur.close()
+    conn.close
+    return render_template('women.html', products=products)
 
 @app.route('/men')
 def men():
-    return render_template('men.html')
+    conn = pymysql.connect(**db_config)
+    cur = conn.cursor(pymysql.cursors.DictCursor)
+    cur.execute("SELECT * FROM products WHERE gender = 'men'")
+    products = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template('men.html', products=products)
 
-# @app.route('/cart')
-# def cart():
-#     cart_items = session.get('cart', [])
-#     total_price = sum(item['price'] * item['quantity'] for item in cart_items)
-#     return render_template('cart.html', cart_items=cart_items, total_price = total_price)
+@app.route('/cart')
+def cart():
+    cart_items = session.get('cart', [])
+    total_price = sum(float(item['price']) * int(item['quantity']) for item in cart_items)
+    return render_template('cart.html', cart_items=cart_items, total_price = total_price)
 
-# @app.route('/add_to_cart/<int:product:id>', methods=['POST'])
-# def add_to_cart(product_id):
-#     quantity = int(request.form.get('quantity', 1))
-#     conn = pymysql.connect(**db_config)
-#     cur = conn.cursor()
-#     cur.execute("SELECT id, name, price FROM products WHERE id = %s", (product_id,))
-#     product = cur.fetchone()
-#     cur.close()
-#     conn.close()
+@app.route('/add_to_cart/<int:product_id>', methods=['POST'])
+def add_to_cart(product_id):
+    quantity = int(request.form.get('quantity', 1))
 
-#     if product:
-#         item = {
-#             'id': product[0],
-#             'name': product[1],
-#             'price': product[2],
-#             'quantity': quantity
-#         }
+    try:
 
-#     if 'cart' not in session:
-#         session['cart'] = []
-#     session['cart'].append(item)
-#     session.modified = True
+        conn = pymysql.connect(**db_config)
+        cur = conn.cursor()
+        cur.execute("SELECT id, name, price FROM products WHERE id = %s", (product_id,))
+        product = cur.fetchone()
+        cur.close()
+        conn.close()
 
-#     return redirect(url_for('cart'))
+        if product:
+            item = {
+                'id': product[0],
+                'name': product[1],
+                'price': product[2],
+                'quantity': quantity
+            }
 
+        if 'cart' not in session:
+            session['cart'] = []
+
+            session['cart'].append(item)
+            session.modified = True
+            flash(f"Added {item['name']} to cart.", "success")
+        else:
+            flash("Product not found.", "danger")
+    
+    except Exception as e:
+        flash(f"Error adding to cart: {e}", "danger")
+
+
+    return redirect(url_for('cart'))
+
+
+@app.route('/checkout')
+def checkout():
+    return render_template('checkout.html')
 
 @app.route('/logout')
 def logout():

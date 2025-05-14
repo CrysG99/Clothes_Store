@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
+    <title>Checkout</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
@@ -34,6 +34,12 @@
                         <li><a href="#">Pants</a></li>
                     </ul>
                 </li>
+                {% if 'user_id' not in session %}
+                <a href="{{ url_for('register') }}">Register</a>
+
+                {% else %}
+                <button onclick="location.href='{{ url_for('profile', name=session['name']) }}'"></button>
+                {% endif %}
             </ul>
 
             <div class="nav-right">
@@ -46,34 +52,11 @@
         <div class="mobile-menu">
             <ul>
                 <button class="menubutton" onclick="location.href='{{ url_for('women') }}'">Women</button>
-                <li><a href="#">Men</a></li>
+                <button class="menubutton" onclick="location.href='{{ url_for('men') }}'">Men</button>
                 <li><a href="#">Kids</a></li>
-                <li><a href="#">Sale</a></li>
             </ul>
         </div>
     </div>
-
-    <h1> Welcome, {{ user[1] }} </h1>
-
-    <h3>Your orders: </h3>
-    {% if orders %}
-    <ul>
-        {% for order in orders %}
-        <li>
-            <strong>Order ID:</strong> {{ order.id }} |
-            <strong>Date:</strong> {{ order.created_at }} |
-            <strong>Total:</strong> {{ order.total_price }} kr
-        </li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <p> No orders yet </p>
-    {% endif %}
-
-    <a href="{{ url_for('cart') }}">View your cart</a>
-
-    <button onclick="location.href='{{ url_for('logout') }}'">Logout</button>
-
 
     <script src="/static/script.js"></script>
 </body>
