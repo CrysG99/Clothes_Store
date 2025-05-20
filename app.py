@@ -4,7 +4,9 @@ from flask import session
 
 app = Flask(__name__)
 app.secret_key = 'storekey'
+# secret key brukes for session
 
+# Database informasjonen, følger med ip adressen, brukernavnet, passordet og databasen på raspberry pi-en
 db_config = {
     'host': '10.2.3.123',
     'user': 'jonathan',

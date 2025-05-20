@@ -75,6 +75,25 @@
     <button onclick="location.href='{{ url_for('logout') }}'">Logout</button>
 
 
+    <div class="footer">
+        <h3 class="footerh3"> Pish Posh! </h3>
+        <p><a href="#" class="footer-link" data-title="About Us"
+                data-body="We are a modern clothing store focused on fashion and quality. We have reasonable prices and we are a pretty small business, have a look around and see if anything piques your interest! ">About
+                Us</a></p>
+        <p><a href="#" class="footer-link" data-title="Terms & Conditions"
+                data-body="These are our terms and conditions. Please read them carefully.">Terms & Conditions</a></p>
+        <p><a href="#" class="footer-link" data-title="Privacy Policy"
+                data-body="Your data is safe with us. We don’t share your information with third parties.">Privacy
+                Policy</a>
+        </p>
+    </div>
+    <div class="overlay" id="overlay"></div>
+    <div class="popup" id="popup">
+        <div class="popup-header" id="popup-title"></div>
+        <div class="popup-body" id="popup-body"></div>
+        <div class="popup-close" id="popup-close">Close</div>
+    </div>
+
     <script src="/static/script.js"></script>
 </body>
 
